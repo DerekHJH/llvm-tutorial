@@ -28,7 +28,9 @@ atan2(sin(.4), cos(42))
 
 # The Lexer
 
-When it comes to implementing a language, the first thing needed is the ability to process a text file and recognize what it says. The traditional way to do this is to use a “lexer” (aka ‘scanner’) to break the input up into “tokens”. Each token returned by the lexer includes a token code and potentially some metadata (e.g. the numeric value of a number). Now, we may refer to the "Lexer" part of code.
+When it comes to implementing a language, the first thing needed is the ability to process a text file and recognize what it says. The traditional way to do this is to use a “lexer” (aka ‘scanner’) to break the input up into “tokens”. Each token returned by the lexer includes a token code and potentially some metadata (e.g. the numeric value of a number). 
+
+Now, we may refer to the "Lexer" part of the code.
 
 # The Parser
 
@@ -36,5 +38,24 @@ The parser we will build uses a combination of *Recursive Descent Parsing* and *
 
 ## AST
 
-The AST for a program captures its behavior in such a way that it is easy for later stages of the compiler (e.g. code generation) to interpret. We basically want one object for each construct in the language, and the AST should closely model the language. In Kaleidoscope, we have expressions, a prototype, and a function object. Now, you may refer to the "Parser" part of code.
+The AST for a program captures its behavior in such a way that it is easy for later stages of the compiler (e.g. code generation) to interpret. We basically want one object for each construct in the language, and the AST should closely model the language. In Kaleidoscope, we have expressions, a prototype, and a function object. 
 
+In Kaleidoscope, functions are typed with just a count of their arguments. Since all values are double precision floating point, the type of each argument doesn’t need to be stored anywhere. In a more aggressive and realistic language, the “ExprAST” class would probably have a type field.
+
+Now, we may refer to the "AST" part of the code.
+
+## Parser
+
+Now that we have an AST to build, we need to define the parser code to build it. The idea here is that we want to parse something like “x+y” (which is returned as three tokens by the lexer) into an AST that could be generated with calls like this:
+
+```C++
+auto LHS = std::make_unique<VariableExprAST>("x");
+auto RHS = std::make_unique<VariableExprAST>("y");
+auto Result = std::make_unique<BinaryExprAST>('+', std::move(LHS), std::move(RHS));
+```
+
+The parser uses look-ahead to determine which sort of expression is being inspected, and then parses it with a function call.
+
+Operator-Precedence Parsing uses the precedence of binary operators to guide recursion. The basic idea of operator precedence parsing is to break down an expression with potentially ambiguous binary operators into pieces. Consider, for example, the expression $a+b+(c+d)*e*f+g$. Operator precedence parsing considers this as a stream of primary expressions separated by binary operators. As such, it will first parse the leading primary expression $a$, then it will see the pairs $[+, b]$ $[+, (c+d)]$ $[*, e]$ $[*, f]$ and $[+, g]$. Note that because parentheses are primary expressions, the binary expression parser doesn’t need to worry about nested subexpressions like (c+d) at all.
+
+Now, we may refer to the "Parser" part of the code.

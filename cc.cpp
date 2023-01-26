@@ -198,7 +198,7 @@ static int CurTok;
 static int getNextToken() { return CurTok = gettok(); }
 
 /// BinopPrecedence - This holds the precedence for each binary operator that is
-/// defined.
+/// defined. The bigger, the stronger.
 static std::map<char, int> BinopPrecedence;
 
 /// GetTokPrecedence - Get the precedence of the pending binary operator token.
@@ -218,18 +218,18 @@ std::unique_ptr<ExprAST> LogError(const char *Str) {
   fprintf(stderr, "Error: %s\n", Str);
   return nullptr;
 }
-
 std::unique_ptr<PrototypeAST> LogErrorP(const char *Str) {
   LogError(Str);
   return nullptr;
 }
+
 
 static std::unique_ptr<ExprAST> ParseExpression();
 
 /// numberexpr ::= number
 static std::unique_ptr<ExprAST> ParseNumberExpr() {
   auto Result = std::make_unique<NumberExprAST>(NumVal);
-  getNextToken(); // consume the number
+  getNextToken(); // consume the number --- standard way to go for recursive descent parsers
   return std::move(Result);
 }
 
@@ -286,6 +286,7 @@ static std::unique_ptr<ExprAST> ParseIdentifierExpr() {
 ///   ::= identifierexpr
 ///   ::= numberexpr
 ///   ::= parenexpr
+// The reason why it is called primary will be explained later
 static std::unique_ptr<ExprAST> ParsePrimary() {
   switch (CurTok) {
   default:
@@ -301,18 +302,19 @@ static std::unique_ptr<ExprAST> ParsePrimary() {
 
 /// binoprhs
 ///   ::= ('+' primary)*
-static std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec,
+static std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec, // Precedence of the operator in the previous LHS
                                               std::unique_ptr<ExprAST> LHS) {
   // If this is a binop, find its precedence.
   while (true) {
     int TokPrec = GetTokPrecedence();
 
-    // If this is a binop that binds at least as tightly as the current binop,
-    // consume it, otherwise we are done.
+    // This op is not tight enough, we do not include it
+    // Because we defined invalid tokens to have a precedence of -1, 
+    // this check implicitly knows that the pair-stream ends when the token stream runs out of binary operators.
     if (TokPrec < ExprPrec)
       return LHS;
 
-    // Okay, we know this is a binop.
+    // Now, we know this is a binop.
     int BinOp = CurTok;
     getNextToken(); // eat binop
 
@@ -325,7 +327,7 @@ static std::unique_ptr<ExprAST> ParseBinOpRHS(int ExprPrec,
     // the pending operator take RHS as its LHS.
     int NextPrec = GetTokPrecedence();
     if (TokPrec < NextPrec) {
-      RHS = ParseBinOpRHS(TokPrec + 1, std::move(RHS));
+      RHS = ParseBinOpRHS(TokPrec + 1, std::move(RHS)); // Include all the pair-stream whose operator precedence is larger than TokPrec
       if (!RHS)
         return nullptr;
     }
@@ -344,7 +346,7 @@ static std::unique_ptr<ExprAST> ParseExpression() {
   if (!LHS)
     return nullptr;
 
-  return ParseBinOpRHS(0, std::move(LHS));
+  return ParseBinOpRHS(0, std::move(LHS)); // Precdence of 0
 }
 
 /// prototype
