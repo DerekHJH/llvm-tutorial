@@ -65,3 +65,39 @@ Now, we may refer to the "Parser" part of the code.
 The codegen() method says to emit IR for that AST node along with all the things it depends on, and they all return an LLVM Value object. “Value” is the class used to represent a “Static Single Assignment (SSA) register” or “SSA value” in LLVM.
 
 Note that instead of adding virtual methods to the ExprAST class hierarchy, it could also make sense to use a visitor pattern or some other way to model this.
+
+Now, we may refer to the "Code Generation" part of the code.
+
+# Optimizer
+
+In the last section, the IRBuilder, does give us obvious optimizations when compiling simple code:
+
+```bash
+ready> def test(x) 1+2+x;
+Read function definition:
+define double @test(double %x) {
+entry:
+        %addtmp = fadd double 3.000000e+00, %x
+        ret double %addtmp
+}
+```
+
+With LLVM, you don’t need this support in the AST. Since all calls to build LLVM IR go through the LLVM IR builder, the builder itself checked to see if there was a constant folding opportunity when you call it. If so, it just does the constant fold and return the constant instead of creating an instruction.
+
+Well, that was easy :). In practice, we recommend always using IRBuilder when generating code like this. It has no “syntactic overhead” for its use (you don’t have to uglify your compiler with constant checks everywhere) and it can dramatically reduce the amount of LLVM IR that is generated in some cases (particular for languages with a macro preprocessor or that use a lot of constants).
+
+On the other hand, the IRBuilder is limited. We need more optimizations. Fortunately, LLVM provides a broad range of optimizations that you can use, in the form of “passes”.
+
+## Passes
+
+ LLVM allows a compiler implementor to make complete decisions about what optimizations to use, in which order, and in what situation.
+
+ As a concrete example, LLVM supports both “whole module” passes, which look across as large of body of code as they can (often a whole file, but if run at link time, this can be a substantial portion of the whole program). It also supports and includes “per-function” passes which just operate on a single function at a time, without looking at other functions.
+
+ For now, we will choose to run a few per-function optimizations as the user types the function in. If we wanted to make a “static Kaleidoscope compiler”, we would use exactly the code we have now, except that we would defer running the optimizer until the entire file has been parsed.
+
+ In order to get per-function optimizations going, we need to set up a FunctionPassManager to hold and organize the LLVM optimizations that we want to run. Once we have that, we can add a set of optimizations to run. We’ll need a new FunctionPassManager for each module that we want to optimize, so we’ll write a function to create and initialize both the module and pass manager for us.
+
+ Now, we may refer to the "Top-Level parsing and JIT Driver" part of the code.
+
+ LLVM provides a wide variety of optimizations that can be used in certain circumstances. Some documentation about the various passes is available, but it isn’t very complete. Another good source of ideas can come from looking at the passes that Clang runs to get started. The “opt” tool allows you to experiment with passes from the command line, so you can see if they do anything.
