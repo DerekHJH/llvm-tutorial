@@ -101,3 +101,11 @@ On the other hand, the IRBuilder is limited. We need more optimizations. Fortuna
  Now, we may refer to the "Top-Level parsing and JIT Driver" part of the code.
 
  LLVM provides a wide variety of optimizations that can be used in certain circumstances. Some documentation about the various passes is available, but it isn’t very complete. Another good source of ideas can come from looking at the passes that Clang runs to get started. The “opt” tool allows you to experiment with passes from the command line, so you can see if they do anything.
+
+ # JIT
+
+ The basic idea that we want for Kaleidoscope is to have the user enter function bodies as they do now, but immediately evaluate the top-level expressions they type in. For example, if they type in “1 + 2;”, we should evaluate and print out 3. If they define a function, they should be able to call it from the command line.
+
+In order to do this, we first prepare the environment to create code for the current native target and declare and initialize the JIT. This is done by calling some "InitializeNativeTarget" functions and adding a global variable TheJIT, and initializing it in main.
+
+Now, we may refer to the "main" function of the code.
