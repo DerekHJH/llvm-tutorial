@@ -11,7 +11,13 @@
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c17",
             "cppStandard": "c++14",
-            "intelliSenseMode": "linux-clang-x64"
+            "intelliSenseMode": "linux-clang-x64",
+            "compilerArgs": [
+                "-I/home/hjh/llvm-project/llvm/include -I/home/hjh/llvm-project/build/include -std=c++17   -fno-exceptions -fno-rtti -D_GNU_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS",
+                "-L/home/hjh/llvm-project/build/lib ",
+                "-lLLVMCore -lLLVMRemarks -lLLVMBitstreamReader -lLLVMBinaryFormat -lLLVMTargetParser -lLLVMSupport -lLLVMDemangle",
+                "-lrt -ldl -lpthread -lm -lz -ltinfo"
+            ]
         }
     ],
     "version": 4

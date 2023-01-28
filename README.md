@@ -59,3 +59,9 @@ The parser uses look-ahead to determine which sort of expression is being inspec
 Operator-Precedence Parsing uses the precedence of binary operators to guide recursion. The basic idea of operator precedence parsing is to break down an expression with potentially ambiguous binary operators into pieces. Consider, for example, the expression $a+b+(c+d)*e*f+g$. Operator precedence parsing considers this as a stream of primary expressions separated by binary operators. As such, it will first parse the leading primary expression $a$, then it will see the pairs $[+, b]$ $[+, (c+d)]$ $[*, e]$ $[*, f]$ and $[+, g]$. Note that because parentheses are primary expressions, the binary expression parser doesn’t need to worry about nested subexpressions like (c+d) at all.
 
 Now, we may refer to the "Parser" part of the code.
+
+# Code Generation
+
+The codegen() method says to emit IR for that AST node along with all the things it depends on, and they all return an LLVM Value object. “Value” is the class used to represent a “Static Single Assignment (SSA) register” or “SSA value” in LLVM.
+
+Note that instead of adding virtual methods to the ExprAST class hierarchy, it could also make sense to use a visitor pattern or some other way to model this.
