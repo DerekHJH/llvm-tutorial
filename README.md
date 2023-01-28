@@ -4,7 +4,7 @@ This tutorial is illustrated with a toy language called “Kaleidoscope” (deri
 
 We want to keep things simple, so the only datatype in Kaleidoscope is a 64-bit floating point type (aka ‘double’ in C parlance). As such, all values are implicitly double precision and the language doesn’t require type declarations. This gives the language a very nice and simple syntax. For example, the following simple example computes Fibonacci numbers:
 
-```C++
+```python
 # Compute the x'th fibonacci number.
 def fib(x)
   if x < 3 then
